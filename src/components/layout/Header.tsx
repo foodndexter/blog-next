@@ -2,7 +2,7 @@ import { colors } from "@/assets"
 import { activeMenuHandler, useAppDispatch, useTheme } from "@/core"
 import { faM, faMoon, faSun } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { styled } from "@stitches/react"
+import { CSSProperties, styled } from "@stitches/react"
 import { useRouter } from "next/router"
 import React from "react"
 
@@ -16,48 +16,55 @@ export default function Header() {
     })
   }
 
-  const { themeHandler, theme } = useTheme()
+  const { themeHandler, isLightMode } = useTheme()
   const onModeIcon = () => themeHandler("theme")
   const onMenuIcon = () => dispatch(activeMenuHandler())
   return (
-    <Container style={theme === "dark" ? { backgroundColor: colors.black } : {}}>
+    <Container style={isLightMode ? {} : { backgroundColor: colors.black, borderColor: "rgba(255, 255, 255, .1)" }}>
       <Wrap>
-        <MenuIcon theme={theme} onClick={onMenuIcon} />
+        <Button>
+          <MenuIcon isLightMode={isLightMode} onClick={onMenuIcon} />
+        </Button>
         <TitleButton onClick={onTitle}>
-          <Title style={theme === "dark" ? { color: colors.lightGrey } : {}}>D's WORLD</Title>
+          <Title style={!isLightMode ? { color: colors.lightGrey } : {}}>D's WORLD</Title>
         </TitleButton>
-        <ModeIcon theme={theme} onClick={onModeIcon} />
+        <ModeIcon isLightMode={isLightMode} onClick={onModeIcon} />
       </Wrap>
     </Container>
   )
 }
-type ButtonProps = { onClick: AppFn; theme: ThemeMode }
-export function MenuIcon({ onClick, theme }: ButtonProps) {
+type ButtonProps = { onClick: AppFn; isLightMode: boolean }
+export function MenuIcon({ onClick, isLightMode, css }: ButtonProps & { css?: CSSProperties }) {
   return (
-    <MenuButton onClick={onClick}>
-      <Span style={theme === "dark" ? { backgroundColor: colors.lightGrey } : {}} />
-      <Span style={theme === "dark" ? { backgroundColor: colors.grey } : { backgroundColor: colors.lightGrey }} />
-      <Span style={theme === "dark" ? { backgroundColor: colors.lightGrey } : {}} />
-      <Span style={theme === "dark" ? { backgroundColor: colors.lightGrey } : {}} />
-    </MenuButton>
+    <MenuWrap onClick={onClick} css={{ ...css }}>
+      <Span style={{ backgroundColor: isLightMode ? colors.grey : colors.lightGrey }} />
+      <Span style={{ backgroundColor: isLightMode ? colors.lightGrey : colors.grey }} />
+      <Span style={{ backgroundColor: isLightMode ? colors.grey : colors.lightGrey }} />
+      <Span style={{ backgroundColor: isLightMode ? colors.grey : colors.lightGrey }} />
+    </MenuWrap>
   )
 }
 
-export function ModeIcon({ onClick, theme }: ButtonProps) {
+export function ModeIcon({ onClick, isLightMode }: ButtonProps) {
   const Button = styled("button", {
     width: 40,
     height: 40,
     border: "none",
     borderRadius: 5,
     backgroundColor: "transparent",
-    color: theme === "dark" ? colors.lightGrey : colors.grey,
+    color: !isLightMode ? colors.lightGrey : colors.grey,
   })
   return (
     <Button onClick={onClick}>
-      <FontAwesomeIcon icon={theme === "dark" ? faMoon : faSun} />
+      <FontAwesomeIcon icon={!isLightMode ? faMoon : faSun} />
     </Button>
   )
 }
+
+const Button = styled("button", {
+  backgroundColor: "transparent",
+  border: "none",
+})
 
 const Container = styled("header", {
   position: "fixed",
@@ -102,7 +109,7 @@ const Title = styled("p", {
   margin: 0,
 })
 
-const MenuButton = styled("button", {
+const MenuWrap = styled("div", {
   display: "grid",
   gridTemplateColumns: "1fr 1fr",
   columnGap: 1,

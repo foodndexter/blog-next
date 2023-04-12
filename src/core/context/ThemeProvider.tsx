@@ -2,7 +2,7 @@ import { colors } from "@/assets"
 import React, { createContext, PropsWithChildren, useContext, useState } from "react"
 
 const initialState: Theme = {
-  theme: "light",
+  isLightMode: true,
   color: colors.black,
   backgroundColor: colors.white,
   point: colors.blue,
@@ -12,7 +12,7 @@ const data = createContext(initialState)
 export function ThemeProvider({ children }: PropsWithChildren) {
   const [theme, setTheme] = useState(initialState)
   const themeHandler = (target: ThemeTarget, value?: any) =>
-    setTheme((prev) => (target === "theme" ? { ...prev, theme: prev.theme === "dark" ? "light" : "dark" } : { ...prev, [target]: value }))
+    setTheme((prev) => (target === "theme" ? { ...prev, isLightMode: !prev.isLightMode } : { ...prev, [target]: value }))
   return <data.Provider value={{ ...theme, themeHandler }}>{children}</data.Provider>
 }
 
