@@ -11,3 +11,5 @@ export const menus: Menu[] = [
   { name: "React.js", path: "reactjs" },
   { name: "Next.js", path: "nextjs" },
 ]
+
+export const adminEmails = ["yoon.tec.info@gmail.com"]

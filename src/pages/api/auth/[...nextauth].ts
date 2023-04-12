@@ -32,16 +32,22 @@ export const authOptions: AuthOptions = {
       await connectMongo()
       if (profile) {
         const _id = await crypto.randomBytes(16).toString("hex")
-        const { email, name } = profile as { email: string; name: string }
-        console.log(profile)
-        const user = await userModel.find({ email })
+        const { email, name, kakao_account } = profile as { email: string; name?: string; kakao_account?: { email: string } }
+        const user = await userModel.findOne({ email: kakao_account ? kakao_account.email : email })
         if (!user) {
-          const newUser = { _id, email, name, isLoggedIn: true }
+          const newUser = { _id, email: kakao_account ? kakao_account.email : email, name, isLoggedIn: true }
           const res = await userModel.create(newUser)
-          if (res) {
-            return newUser
-          } else throw new Error("유저 회원가입 하면서 문제가 발생함")
-        } else return { ...user, isLoggedIn: true }
+          if (!res) {
+            throw new Error("유저 회원가입 하면서 문제가 발생함")
+          }
+        } else {
+          try {
+            const res = await userModel.findOneAndUpdate({ email }, { $set: { isLoggedIn: true } })
+            console.log(res)
+          } catch (error: any) {
+            throw new Error("로그인 하면서 활성화 단계에서 에러뜸")
+          }
+        }
       }
       if (account) {
         token.accessToken = account.access_token

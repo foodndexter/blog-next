@@ -15,12 +15,11 @@ export default function Menubar() {
     <Container style={activeMenu ? {} : { visibility: "hidden", opacity: 0 }}>
       <Wrap
         css={{ transition: "all .2s ease-out" }}
-        style={activeMenu ? { backgroundColor: !isLightMode ? colors.black : colors.white } : { marginLeft: "-100%" }}
-      >
+        style={activeMenu ? { backgroundColor: !isLightMode ? colors.black : colors.white } : { marginLeft: "-100%" }}>
         <MenubarTitle onClose={onClose} />
         <Content menus={menus} onClose={onClose} />
       </Wrap>
-      <BG onClick={onClose} />
+      <BG onClick={onClose} style={{ backgroundColor: isLightMode ? undefined : "rgba(255, 255, 255, .05)" }} />
     </Container>
   )
 }

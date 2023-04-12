@@ -1,7 +1,7 @@
-import { colors } from "@/assets"
+import { adminEmails, colors } from "@/assets"
 import { useTheme, useUser } from "@/core"
 import { faReact } from "@fortawesome/free-brands-svg-icons"
-import { faArrowRightToBracket, faChevronDown } from "@fortawesome/free-solid-svg-icons"
+import { faArrowRightToBracket, faChevronDown, faGear } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { styled } from "@stitches/react"
 import axios from "axios"
@@ -77,15 +77,13 @@ export default function Contents({ menus, onClose }: { menus: Menu[]; onClose: A
 
   const signoutFn = useMutation({
     mutationFn: async (): Promise<Api> => {
-      const { data } = await axios.post("api/signout", { email: user.email })
+      const { data } = await axios.post("api/auth/signout", { email: user.email })
       return data
     },
     onSuccess: (res) => {
-      console.log(res)
       const { success, message, payload } = res
-      console.log(payload)
       if (!success) {
-        alert(message)
+        console.log(message)
       } else {
         alert("로그아웃 되었습니다.")
         signOut({ redirect: true, callbackUrl: "/" }).then((res) => console.log(res))
@@ -97,11 +95,18 @@ export default function Contents({ menus, onClose }: { menus: Menu[]; onClose: A
     if (isLoggedIn) {
       signoutFn.mutate()
     }
-    isLoggedIn
-      ? console.log("logout")
-      : router.push({
-          pathname: "/signin",
-        })
+    !isLoggedIn &&
+      router.push({
+        pathname: "/signin",
+      })
+  }
+
+  const onSetting = () => {
+    console.log("admin")
+    onClose()
+    router.push({
+      pathname: "/admin",
+    })
   }
   return (
     <Container>
@@ -119,6 +124,14 @@ export default function Contents({ menus, onClose }: { menus: Menu[]; onClose: A
         ))}
       </Wrap>
       <Wrap>
+        {adminEmails.find((item) => item === user?.email) && (
+          <Item onClick={onSetting}>
+            <IconArea>
+              <FontAwesomeIcon icon={faGear} style={{ transform: isLoggedIn ? undefined : "rotate(180deg)" }} />
+            </IconArea>
+            <Text>설정</Text>
+          </Item>
+        )}
         <Item onClick={onAuth}>
           <IconArea>
             <FontAwesomeIcon icon={faArrowRightToBracket} style={{ transform: isLoggedIn ? undefined : "rotate(180deg)" }} />

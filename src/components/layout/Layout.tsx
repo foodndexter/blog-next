@@ -13,10 +13,13 @@ export default function Layout({ children }: PropsWithChildren) {
   const { pathname } = useRouter()
   const { data } = useQuery(["menus"], {
     queryFn: async () => {
-      const { data } = await axios.get("api/fetch")
+      const { data } = await axios.get("api/menus")
       return data
     },
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    onSuccess: (res) => {
+      console.log(res)
+    },
   })
 
   const { isLightMode } = useTheme()
@@ -26,7 +29,7 @@ export default function Layout({ children }: PropsWithChildren) {
     <>
       <Header />
       <Menubar />
-      {(pathname !== "/" || !pathname.includes("edit")) && <Navbar />}
+      {pathname !== "/" && !pathname.includes("edit") && !pathname.includes("admin") && <Navbar />}
       <Main style={{ backgroundColor: isLightMode ? colors.white : colors.black, color: isLightMode ? colors.black : colors.white }}>{children}</Main>
     </>
   )
