@@ -26,7 +26,7 @@ export default function Header() {
           <MenuIcon isLightMode={isLightMode} onClick={onMenuIcon} />
         </Button>
         <TitleButton onClick={onTitle}>
-          <Title style={!isLightMode ? { color: colors.lightGrey } : {}}>D's WORLD</Title>
+          <Title style={!isLightMode ? { color: colors.lightGrey } : {}}>D' WORLD</Title>
         </TitleButton>
         <ModeIcon isLightMode={isLightMode} onClick={onModeIcon} />
       </Wrap>

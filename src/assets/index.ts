@@ -12,4 +12,4 @@ export const menus: Menu[] = [
   { name: "Next.js", path: "nextjs" },
 ]
 
-export const adminEmails = ["yoon.tec.info@gmail.com"]
+export const adminEmails = ["yoon.tec.info@gmail.com", "edu.bee.info@gmail.com"]

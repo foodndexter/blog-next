@@ -129,7 +129,7 @@ export default function Contents({ menus, onClose }: { menus: Menu[]; onClose: A
             <IconArea>
               <FontAwesomeIcon icon={faGear} style={{ transform: isLoggedIn ? undefined : "rotate(180deg)" }} />
             </IconArea>
-            <Text>설정</Text>
+            <Text>Admin Panel</Text>
           </Item>
         )}
         <Item onClick={onAuth}>

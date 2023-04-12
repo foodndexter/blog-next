@@ -1,3 +1,5 @@
+import { colors } from "@/assets"
+import { useTheme } from "@/core"
 import { faGoogle } from "@fortawesome/free-brands-svg-icons"
 import { faComment } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -13,10 +15,12 @@ export default function SigninPage() {
   const onClick = (name: string) => {
     signIn(name === "Google" ? "google" : "kakao", { redirect: true, callbackUrl: "/" })
   }
+
+  const { isLightMode } = useTheme()
   return (
     <Container>
       {buttons.map(({ name, icon }) => (
-        <Button key={name} onClick={() => onClick(name)}>
+        <Button style={isLightMode ? {} : { backgroundColor: colors.lightGrey }} key={name} onClick={() => onClick(name)}>
           <FontAwesomeIcon icon={icon} />
           {name}
         </Button>

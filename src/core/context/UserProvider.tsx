@@ -13,28 +13,25 @@ const data = createContext(initialState)
 export function UserProvider({ children }: PropsWithChildren) {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const router = useRouter()
 
   const { data: session, status } = useSession()
   useEffect(() => {
     setIsLoggedIn(status === "authenticated" ? true : false)
     setUser(session?.user ? session.user : null)
     console.log(session, status)
-  }, [session, status])
+    if (status === "authenticated" && router.pathname.includes("admin")) {
+      if (!adminEmails.find((item) => item === user?.email)) {
+        setAccess(false)
+      } else setAccess(true)
+    } else setAccess(true)
+  }, [session, status, router])
 
-  const router = useRouter()
   const [access, setAccess] = useState(false)
 
   useEffect(() => {
-    if (router.pathname.includes("admin")) {
-      if (!adminEmails.find((item) => item === user?.email)) {
-        setAccess(false)
-        console.log("이곳은 방문할 수가 엄씀다")
-        router.push({
-          pathname: "/",
-        })
-      } else setAccess(true)
-    } else setAccess(true)
-  }, [router])
+    console.log(access)
+  }, [access])
 
   // const time = new Date()
   // const [lastAction, setLastAction] = useState(time)
@@ -48,7 +45,7 @@ export function UserProvider({ children }: PropsWithChildren) {
   //   console.log(lastAction)
   // }, [lastAction])
 
-  return <data.Provider value={{ isLoggedIn, user }}>{access ? children : null}</data.Provider>
+  return <data.Provider value={{ isLoggedIn, user }}>{access ? children : <p>Access Denied</p>}</data.Provider>
 }
 
 export function useUser() {

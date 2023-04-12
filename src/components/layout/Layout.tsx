@@ -1,5 +1,5 @@
 import { colors } from "@/assets"
-import { useTheme } from "@/core"
+import { menuHandler, useAppDispatch, useTheme } from "@/core"
 import { globalCss, styled } from "@stitches/react"
 import axios from "axios"
 import { useRouter } from "next/router"
@@ -11,14 +11,18 @@ import Navbar from "./Navbar"
 
 export default function Layout({ children }: PropsWithChildren) {
   const { pathname } = useRouter()
-  const { data } = useQuery(["menus"], {
+  const dispatch = useAppDispatch()
+  const { data } = useQuery("menus", {
     queryFn: async () => {
       const { data } = await axios.get("api/menus")
       return data
     },
     refetchOnWindowFocus: true,
     onSuccess: (res) => {
-      console.log(res)
+      const { success, payload } = res
+      if (success) {
+        dispatch(menuHandler(payload))
+      }
     },
   })
 
