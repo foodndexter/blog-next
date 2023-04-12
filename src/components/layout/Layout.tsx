@@ -41,4 +41,7 @@ const Main = styled("main", {
 })
 const style = globalCss({
   "*": { margin: 0, padding: 0 },
+  button: {
+    cursor: "pointer",
+  },
 })

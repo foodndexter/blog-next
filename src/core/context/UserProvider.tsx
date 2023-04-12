@@ -14,8 +14,8 @@ export function UserProvider({ children }: PropsWithChildren) {
 
   const { data: session, status } = useSession()
   useEffect(() => {
-    console.log(session, status)
     setIsLoggedIn(status === "authenticated" ? true : false)
+    setUser(session?.user ? session.user : null)
   }, [session, status])
 
   return <data.Provider value={{ isLoggedIn, user }}>{children}</data.Provider>

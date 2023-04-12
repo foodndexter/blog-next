@@ -32,9 +32,16 @@ export const authOptions: AuthOptions = {
       await connectMongo()
       if (profile) {
         const _id = await crypto.randomBytes(16).toString("hex")
-        const { email } = profile as { email: string }
-        const users = await userModel.find({})
-        console.log(profile, users)
+        const { email, name } = profile as { email: string; name: string }
+        console.log(profile)
+        const user = await userModel.find({ email })
+        if (!user) {
+          const newUser = { _id, email, name, isLoggedIn: true }
+          const res = await userModel.create(newUser)
+          if (res) {
+            return newUser
+          } else throw new Error("유저 회원가입 하면서 문제가 발생함")
+        } else return { ...user, isLoggedIn: true }
       }
       if (account) {
         token.accessToken = account.access_token
