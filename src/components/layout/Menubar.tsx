@@ -44,6 +44,7 @@ const Wrap = styled("div", {
   width: "50%",
   minWidth: 180,
   padding: 10,
+  maxWidth: 300,
 })
 
 const BG = styled("button", {

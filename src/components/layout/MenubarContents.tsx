@@ -36,7 +36,7 @@ export default function Contents({ menus, onClose }: { menus: Menu[]; onClose: A
     display: "flex",
     columnGap: 10,
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     color: isLightMode ? undefined : colors.lightGrey,
   })
   const IconArea = styled("div", {
@@ -66,7 +66,7 @@ export default function Contents({ menus, onClose }: { menus: Menu[]; onClose: A
   const router = useRouter()
   const onMenuItem = (item: Menu) => {
     const { name, path, items } = item
-    if (!items) {
+    if (!items || items.length <= 0) {
       console.log("no other items to render")
       onClose()
       router.push({
@@ -82,14 +82,15 @@ export default function Contents({ menus, onClose }: { menus: Menu[]; onClose: A
     },
     onSuccess: (res) => {
       const { success, message, payload } = res
+      signOut()
       if (!success) {
         console.log(message)
       } else {
-        alert("로그아웃 되었습니다.")
-        signOut({ redirect: true, callbackUrl: "/" }).then((res) => console.log(res))
+        signOut()
       }
     },
   })
+
   const onAuth = () => {
     onClose()
     if (isLoggedIn) {

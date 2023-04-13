@@ -1,5 +1,6 @@
 import { colors } from "@/assets"
 import { AdminMenus, AdminStats } from "@/components"
+import { menuHandler, useAppDispatch } from "@/core"
 import { styled } from "@stitches/react"
 import axios from "axios"
 import { useRouter } from "next/router"
@@ -7,6 +8,11 @@ import React, { useEffect, useState } from "react"
 
 export default function AdminIndexPage(props: Api) {
   const [menus, setMenus] = useState<Menu[]>([])
+  const dispatch = useAppDispatch()
+
+  useEffect(() => {
+    dispatch(menuHandler(menus))
+  }, [menus, dispatch])
   useEffect(() => {
     const { success, message, payload } = props
     if (!success) {

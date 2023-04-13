@@ -1,122 +1,225 @@
 import { colors } from "@/assets"
-import { faPlus } from "@fortawesome/free-solid-svg-icons"
+import { Button, View } from "@/core"
+import { faMinus, faPen, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { styled } from "@stitches/react"
-import React, { useEffect, useRef, useState } from "react"
+import axios from "axios"
+import { useRouter } from "next/router"
+import React, { useState } from "react"
+import { useMutation, useQueryClient } from "react-query"
+import AdminForm from "./AdminForm"
 
 type Props = { menus: Menu[] }
 export default function AdminMenus({ menus }: Props) {
-  console.log(menus)
+  return (
+    <View
+      css={{
+        maxWidth: 500,
+        margin: "0 auto",
+        marginTop: 10,
+        width: "calc(100% - 20px)",
+        rowGap: 10,
+        columnGap: 10,
+        "@min500": {
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+        },
+        "@min900": {
+          maxWidth: 900,
+          gridTemplateColumns: "1fr 1fr 1fr",
+        },
+      }}>
+      {menus?.map((item) => (
+        <AdminMenuItem key={item._id} {...item} />
+      ))}
+      <AdminMenuItem name="메뉴추가" />
+    </View>
+  )
+}
 
-  const Container = styled("div", {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    width: "calc(100% - 24px)",
-    columnGap: 10,
-    margin: "10px auto",
+function AdminMenuItem(props: Menu) {
+  const { _id, items, name } = props
+  const [form, setForm] = useState(false)
+  const formHandler = () => setForm((prev) => !prev)
+
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  const addMenu = useMutation({
+    mutationFn: async (name: string): Promise<Api> => {
+      const { data } = await axios.post("api/menus", { name, path: name })
+      return data
+    },
+    onSuccess: (res) => {
+      const { success, message } = res
+      console.log(message)
+      if (success) {
+        router.replace(router.asPath)
+        queryClient.invalidateQueries({ queryKey: "menus" })
+        formHandler()
+      }
+    },
   })
+
+  const deleteMenu = useMutation({
+    mutationFn: async (_id: string): Promise<Api> => {
+      const { data } = await axios.delete(`api/menus?_id=${_id}`)
+      return data
+    },
+    onSuccess: (res) => {
+      const { success, message } = res
+      console.log(message)
+      if (success) {
+        router.replace(router.asPath)
+        queryClient.invalidateQueries({ queryKey: "menus" })
+      }
+    },
+  })
+  const onSubmit = (input: string) => {
+    addMenu.mutate(input)
+  }
   return (
     <>
-      {menus && menus.length > 0 ? (
-        <Container>
-          {menus.map((item, index) => (
-            <Item key={index} {...item} />
-          ))}
-          <Item initial name="메뉴를 추가하세요" />
-        </Container>
-      ) : (
-        <Container css={{ display: "block" }}>
-          <Item name="등록된 메뉴가 없습니다." initial />
-        </Container>
-      )}
+      <View css={{ padding: 10, borderRadius: 10, backgroundColor: colors.lightGrey, rowGap: 10 }}>
+        {name === "메뉴추가" ? (
+          <AddButton onClick={formHandler} />
+        ) : (
+          <>
+            <Row>
+              <View as="p" css={{ fontWeight: 600 }}>
+                {name}
+              </View>
+              <View type="row" css={{ columnGap: 5 }}>
+                <Button color={"grey"} css={{ ...buttonStyle, fontSize: 10 }} onClick={formHandler}>
+                  <FontAwesomeIcon icon={faPen} />
+                </Button>
+                <Button color={"red"} css={{ ...buttonStyle }} onClick={() => deleteMenu.mutate(_id)}>
+                  <FontAwesomeIcon icon={name === "하위메뉴 추가" ? faPlus : faMinus} />
+                </Button>
+              </View>
+            </Row>
+            {items?.map((item) => (
+              <AdminSubmenuItem key={item.name} {...item} title={name} _id={_id} />
+            ))}
+            <AdminSubmenuItem name="하위메뉴 추가" _id={_id} title={name} />
+          </>
+        )}
+      </View>
+      <AdminForm state={form} closeFn={formHandler} onSubmit={onSubmit} title="메뉴추가" />
     </>
   )
 }
 
-function Item({ name, items, path, initial }: Menu & { initial?: boolean }) {
-  const Container = styled("div", {
-    border: "1px solid",
-    backgroundColor: "white",
-    borderColor: colors.lightGrey,
-    padding: 10,
-    boxShadow: "0 3px 6px rgba(0,0,0,.1)",
-    borderRadius: 10,
-    "&:hover": {
-      boxShadow: "0 3px 6px rgba(0,0,0,.2)",
+function AdminSubmenuItem({ name, title, _id }: Menu & { title?: string }) {
+  const [form, setForm] = useState(false)
+  const formHandler = () => setForm((prev) => !prev)
+
+  const [edit, setEdit] = useState(false)
+  const editHandler = () => setEdit((prev) => !prev)
+
+  const router = useRouter()
+  const queryClient = useQueryClient()
+
+  const whenSuccess = (success: boolean) => {
+    if (success) {
+      router.replace(router.asPath)
+      queryClient.invalidateQueries({ queryKey: "menus" })
+      setForm(false)
+      edit && editHandler()
+    }
+  }
+
+  const url = "api/submenus"
+  const deleteSubMenu = useMutation({
+    mutationFn: async (): Promise<Api> => {
+      console.log({
+        target: name,
+        _id,
+      })
+      const { data } = await axios.delete(`${url}?targetname=${name}&menuid=${_id}`, { withCredentials: true })
+      return data
+    },
+    onSuccess: (res) => {
+      const { success, message } = res
+      console.log(message)
+      whenSuccess(success)
+    },
+  })
+  const editSubMenu = useMutation({
+    mutationFn: async (input: { target: string; name: string }): Promise<Api> => {
+      const { data } = await axios.patch(url, { ...input, _id })
+      return data
+    },
+    onSuccess: (res) => {
+      const { success, message } = res
+      console.log(res)
+      whenSuccess(success)
     },
   })
 
-  const [adding, setAdding] = useState(false)
-
-  const onInitial = () => {
-    if (initial) {
-      console.log("no menu")
-      setAdding((prev) => !prev)
-    }
-  }
-  return (
-    <Container>
-      <Wrap>
-        {name}
-        <AddButton onClick={onInitial} />
-      </Wrap>
-      {adding && <Form state={adding} />}
-    </Container>
-  )
-}
-
-type ButtonProps = { onClick?: AppFn }
-function AddButton({ onClick }: ButtonProps) {
-  return (
-    <Button css={{ width: 30, height: 30, borderRadius: 15, border: "none", backgroundColor: colors.blue, color: "white" }} onClick={onClick}>
-      <FontAwesomeIcon icon={faPlus} />
-    </Button>
-  )
-}
-
-type FormProps = { state: boolean }
-function Form({ state }: FormProps) {
-  const Container = styled("form", {
-    display: "flex",
-    flexDirection: "column",
-    rowGap: 10,
+  const addSubMenu = useMutation({
+    mutationFn: async (input: { name: string; path: string; _id: string }): Promise<Api> => {
+      const { data } = await axios.post(url, { ...input })
+      return data
+    },
+    onSuccess: (res) => {
+      const { success, message } = res
+      console.log(message, res)
+      whenSuccess(success)
+    },
   })
 
-  const Input = styled("input", {})
+  const onSubmit = (input: string) => {
+    edit ? editSubMenu.mutate({ target: name, name: input }) : addSubMenu.mutate({ name: input, path: input, _id })
+  }
+  const onEdit = () => {
+    editHandler()
+    formHandler()
+  }
 
-  const [name, setName] = useState("")
-
-  const ref = useRef<HTMLInputElement | null>(null)
-  const focus = () => ref.current?.focus()
-
-  useEffect(() => {
-    state && focus()
-  }, [state])
+  const onDelete = () => {
+    deleteSubMenu.mutate()
+  }
   return (
-    <Container>
-      <input ref={ref} value={name} onChange={(e) => setName(e.target.value)} />
-    </Container>
+    <>
+      <Row>
+        {name}
+        <View type="row" css={{ columnGap: 5 }}>
+          {name !== "하위메뉴 추가" && (
+            <Button color={"grey"} css={{ ...buttonStyle, fontSize: 10 }} onClick={onEdit}>
+              <FontAwesomeIcon icon={faPen} />
+            </Button>
+          )}
+          <Button color={name === "하위메뉴 추가" ? "blue" : "red"} css={{ ...buttonStyle }} onClick={onDelete}>
+            <FontAwesomeIcon icon={name === "하위메뉴 추가" ? faPlus : faMinus} />
+          </Button>
+        </View>
+      </Row>
+      <AdminForm
+        state={form}
+        closeFn={formHandler}
+        onSubmit={onSubmit}
+        title={`${title} ${edit ? "하위메뉴수정" : "하위메뉴추가"}`}
+        payload={edit ? name : undefined}
+      />
+    </>
   )
 }
 
-const Wrap = styled("div", {
-  display: "flex",
-  alignItems: "center",
-  columnGap: 10,
-})
+function AddButton({ onClick }: { onClick?: AppFn }) {
+  return (
+    <Row>
+      메뉴추가
+      <Button css={{ ...buttonStyle }} onClick={onClick} color="blue">
+        <FontAwesomeIcon icon={faPlus} />
+      </Button>
+    </Row>
+  )
+}
 
-const Button = styled("button", {
-  padding: 10,
-  borderRadius: 5,
-  border: "1px solid",
-  fontSize: 16,
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  "&:hover": {
-    opacity: 0.9,
-  },
-  "&:active": {
-    opacity: 0.8,
-  },
-})
+function Row({ children }: React.PropsWithChildren) {
+  return (
+    <View type="row" css={{ alignItems: "center", justifyContent: "space-between" }}>
+      {children}
+    </View>
+  )
+}
+const buttonStyle = { padding: 0, width: 20, height: 20, borderRadius: 20 }
